@@ -1,0 +1,104 @@
+name: reconmap-pro
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: reconmap
+      POSTGRES_PASSWORD: reconmap
+      POSTGRES_DB: reconmap
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reconmap"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    ports:
+      - "6379:6379"
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      RECONMAP_DATABASE_URL: postgresql+asyncpg://reconmap:reconmap@db/reconmap
+      RECONMAP_REDIS_URL: redis://redis:6379/0
+      RECONMAP_CORS_ORIGINS: http://localhost:5173,http://localhost:8080
+      RECONMAP_ENVIRONMENT: production
+      RECONMAP_REPORT_DIR: /data/reports
+      RECONMAP_ALLOW_PRIVATE_NETWORKS: "false"
+    volumes:
+      - reports:/data/reports
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+  worker:
+    build:
+      context: ./backend
+    environment:
+      RECONMAP_DATABASE_URL: postgresql+asyncpg://reconmap:reconmap@db/reconmap
+      RECONMAP_REDIS_URL: redis://redis:6379/0
+      RECONMAP_REPORT_DIR: /data/reports
+      RECONMAP_ALLOW_PRIVATE_NETWORKS: "false"
+    volumes:
+      - reports:/data/reports
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: arq app.workers.WorkerSettings
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE: /api
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+  # -----------------------------------------------------------------------
+  # LOCAL DEMONSTRATION LAB
+  #
+  # An authorized, intentionally simple target you can scan to explore
+  # ReconMap Pro. It is a plain HTTP server that simulates a small company
+  # (main site, API subdomain, blog) so the platform can be demonstrated
+  # without touching any third-party system.
+  #
+  # To scan it, run the backend with RECONMAP_ALLOW_PRIVATE_NETWORKS=true
+  # and target "lab.local" (the backend container resolves it via the
+  # extra_hosts / aliases below).
+  # -----------------------------------------------------------------------
+  lab:
+    build:
+      context: ./lab
+    ports:
+      - "8099:8099"
+    networks:
+      default:
+        aliases:
+          - lab.local
+          - api.lab.local
+          - blog.lab.local
+
+volumes:
+  pgdata:
+  reports:

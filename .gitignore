@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+backend/.venv/
+.venv/
+env/
+venv/
+ENV/
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+
+# Temporary test scripts
+backend/block_test.bat
+backend/temp.bat
+backend/test_py.*
+
+# Node.js & TypeScript build cache
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+*.tsbuildinfo
+.npm
+*.log
+
+# Reports
+backend/reports/
+reports/*.html
+reports/*.json
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
