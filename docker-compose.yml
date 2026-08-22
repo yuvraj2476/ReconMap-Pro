@@ -75,29 +75,6 @@ services:
     depends_on:
       - backend
 
-  # -----------------------------------------------------------------------
-  # LOCAL DEMONSTRATION LAB
-  #
-  # An authorized, intentionally simple target you can scan to explore
-  # ReconMap Pro. It is a plain HTTP server that simulates a small company
-  # (main site, API subdomain, blog) so the platform can be demonstrated
-  # without touching any third-party system.
-  #
-  # To scan it, run the backend with RECONMAP_ALLOW_PRIVATE_NETWORKS=true
-  # and target "lab.local" (the backend container resolves it via the
-  # extra_hosts / aliases below).
-  # -----------------------------------------------------------------------
-  lab:
-    build:
-      context: ./lab
-    ports:
-      - "8099:8099"
-    networks:
-      default:
-        aliases:
-          - lab.local
-          - api.lab.local
-          - blog.lab.local
 
 volumes:
   pgdata:

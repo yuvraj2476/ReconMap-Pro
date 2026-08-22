@@ -239,6 +239,35 @@ export default function ScanDetail() {
                         <dd className="text-slate-300 break-words">{selectedAsset.evidence}</dd>
                       </div>
                     )}
+                    {selectedAsset.properties?.is_exposed_code && (
+                      <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-3 text-xs">
+                        <h4 className="text-red-400 font-bold uppercase tracking-wider text-[11px] mb-1.5 flex items-center gap-1.5">
+                          <AlertTriangle className="w-3.5 h-3.5" /> Exposed Codebase Detected
+                        </h4>
+                        <div className="space-y-1 text-slate-300 mb-3">
+                          <div><span className="text-slate-500 font-medium">Type:</span> {selectedAsset.properties.code_type}</div>
+                          <div><span className="text-slate-500 font-medium">Estimated Size:</span> {selectedAsset.properties.size_human}</div>
+                        </div>
+                        <div className="flex gap-2">
+                          <a
+                            href={selectedAsset.properties.download_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-1 text-center bg-red-500 hover:bg-red-600 text-white font-semibold py-1.5 px-3 rounded transition-colors text-xs"
+                          >
+                            Download
+                          </a>
+                          <a
+                            href={selectedAsset.properties.download_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-1 text-center bg-ink-700 hover:bg-ink-600 text-slate-200 border border-ink-600 font-semibold py-1.5 px-3 rounded transition-colors text-xs"
+                          >
+                            View Online
+                          </a>
+                        </div>
+                      </div>
+                    )}
                     {Object.keys(selectedAsset.properties).length > 0 && (
                       <div>
                         <dt className="text-slate-500 uppercase tracking-wider mb-1">Properties</dt>

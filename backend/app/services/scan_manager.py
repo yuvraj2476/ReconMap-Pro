@@ -32,6 +32,7 @@ from app.recon.crawler import crawl
 from app.recon.dns import enumerate_dns
 from app.recon.http_analysis import analyze_http
 from app.recon.http_client import SafeHttpClient
+from app.recon.exposed_source import check_exposed_code
 from app.recon.ip_asn import lookup_ips
 from app.recon.js_analysis import analyze_js_bundle
 from app.recon.subdomains import discover_subdomains
@@ -145,8 +146,6 @@ async def _run_scan(ctx: ScanContext, db: AsyncSession, settings: Settings) -> N
         settings.allow_private_networks
         or scan.options.get("allow_private_networks", False)
         or target.endswith(".local")
-        or target.endswith(".lab")
-        or target in settings.lab_authorized_domains_list
     )
     validator = ScopeValidator.for_target(
         target, allow_private_networks=allow_private
@@ -411,14 +410,9 @@ async def _run_scan(ctx: ScanContext, db: AsyncSession, settings: Settings) -> N
                 or ctx.assets.get((AssetType.DOMAIN, host.lower()))
             )
 
-            # Build the list of (scheme, port) candidates to probe. In lab
-            # mode (private networks allowed) we also try configured extra
-            # ports so the bundled Docker lab can be reached on non-standard
-            # ports. In production only 80/443 are attempted.
+            # Build the list of (scheme, port) candidates to probe. In
+            # production only 80/443 are attempted.
             candidates = [("https", 443), ("http", 80)]
-            if allow_private and settings.lab_extra_ports:
-                for port in settings.lab_extra_ports:
-                    candidates.append(("http", port))
 
             reachable_found = False
             for scheme, port in candidates:
@@ -433,6 +427,41 @@ async def _run_scan(ctx: ScanContext, db: AsyncSession, settings: Settings) -> N
                 if not analysis.reachable:
                     continue
                 reachable_found = True
+
+                # Codebase checks
+                try:
+                    exposed_codebases = await check_exposed_code(url, client, validator)
+                    for ec in exposed_codebases:
+                        ec_props = {
+                            "is_exposed_code": True,
+                            "code_type": ec["code_type"],
+                            "size_bytes": ec["size_bytes"],
+                            "size_human": ec["size_human"],
+                            "download_url": ec["url"],
+                            "path": ec["path"],
+                        }
+                        ec_asset = ctx.add_asset(
+                            AssetType.URL, ec["url"],
+                            properties=ec_props,
+                            source="exposed-scanner", confidence=1.0,
+                            evidence=f"Exposed codebase {ec['code_type']} found (estimated size: {ec['size_human']})",
+                        )
+                        if host_asset:
+                            ctx.add_relation(host_asset, ec_asset, RelationType.LINKS_TO,
+                                             source_module="exposed-scanner")
+                        
+                        ctx.add_observation(
+                            f"Exposed codebase backup detected: {ec['code_type']}", Severity.HIGH,
+                            asset=ec_asset,
+                            description=f"An exposed codebase/backup was found at {ec['url']}. "
+                                        f"This leak can expose private credentials, algorithms, or API endpoints. "
+                                        f"Estimated codebase size is {ec['size_human']}.",
+                            recommendation="Restrict public access to this path immediately, delete any unnecessary files, "
+                                           "and rotate any credentials found in the codebase.",
+                            source="exposed-scanner",
+                        )
+                except Exception as exc:
+                    logger.debug("Codebase checks failed for %s: %s", url, exc)
 
                 # Web server asset
                 if analysis.server:

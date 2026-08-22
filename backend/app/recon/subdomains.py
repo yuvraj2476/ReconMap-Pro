@@ -21,6 +21,8 @@ import httpx
 from app.config import Settings
 from app.recon.http_client import SafeHttpClient
 from app.security.scope import ScopeValidator
+from app.recon.binary_downloader import download_subfinder
+from app.recon.provider_config import generate_subfinder_config
 
 logger = logging.getLogger(__name__)
 
@@ -103,6 +105,28 @@ async def discover_subdomains(
     for name in passive:
         if validator.is_in_scope(name):
             candidates.add(name)
+
+    # 1b. Advanced Subdomain Enumeration: Subfinder
+    binary_path = await download_subfinder(settings.allow_tool_download)
+    if binary_path:
+        config_path = generate_subfinder_config(settings)
+        logger.info("Running advanced subdomain enumeration with subfinder on %s", root)
+        try:
+            proc = await asyncio.create_subprocess_exec(
+                binary_path, "-d", root, "-pc", config_path, "-silent",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            stdout, stderr = await proc.communicate()
+            if proc.returncode == 0:
+                for line in stdout.decode().splitlines():
+                    name = line.strip().lower()
+                    if name and validator.is_in_scope(name):
+                        candidates.add(name)
+            else:
+                logger.error("subfinder execution failed with code %d: %s", proc.returncode, stderr.decode())
+        except Exception as exc:
+            logger.error("Failed to run subfinder subprocess: %s", exc)
 
     # 2. Optional active: constrained wordlist (NOT bruteforce)
     if enable_active and not settings.passive_only:

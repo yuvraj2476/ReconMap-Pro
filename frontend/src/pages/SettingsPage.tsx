@@ -23,8 +23,13 @@ export default function SettingsPage() {
             <Row label="Queue" value={String(health.data?.redis ?? "—")} />
             <Row
               label="Private networks"
-              value={health.data?.allow_private_networks ? "allowed (lab)" : "blocked"}
+              value={health.data?.allow_private_networks ? "allowed" : "blocked"}
               danger={!health.data?.allow_private_networks}
+            />
+            <Row
+              label="External tools auto-download"
+              value={health.data?.allow_tool_download ? "allowed" : "blocked"}
+              danger={!health.data?.allow_tool_download}
             />
           </dl>
         </div>
@@ -68,7 +73,11 @@ export default function SettingsPage() {
             {[
               ["DATABASE_URL", "PostgreSQL (prod) or SQLite (dev)"],
               ["REDIS_URL", "Redis for arq workers (optional)"],
-              ["ALLOW_PRIVATE_NETWORKS", "Enable only for the local lab"],
+              ["ALLOW_PRIVATE_NETWORKS", "Enable scans of private networks"],
+              ["ALLOW_TOOL_DOWNLOAD", "Enable subfinder auto-download"],
+              ["SUBFINDER_SHODAN_API", "Shodan API Key for Subfinder"],
+              ["SUBFINDER_VIRUSTOTAL_API", "VirusTotal API Key for Subfinder"],
+              ["SUBFINDER_CENSYS_API", "Censys API credentials (ID:Secret)"],
               ["REQUEST_TIMEOUT", "Per-request HTTP timeout (s)"],
               ["MAX_CRAWL_DEPTH", "Crawler depth cap"],
               ["MAX_CRAWL_PAGES", "Crawler page cap"],

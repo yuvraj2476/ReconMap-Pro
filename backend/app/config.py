@@ -36,15 +36,14 @@ class Settings(BaseSettings):
     )
 
     # --- Security / scope enforcement (SAFE BY DEFAULT) ----------------------
-    # When True, private/loopback/link-local targets are permitted. This must
-    # ONLY be enabled when running against the bundled local Docker lab.
+    # When True, private/loopback/link-local targets are permitted.
     allow_private_networks: bool = Field(default=False)
-    # Domains that are always treated as in-scope (the bundled lab), CSV in env.
-    lab_authorized_domains: str = Field(default="lab.local,example.lab")
 
-    @property
-    def lab_authorized_domains_list(self) -> List[str]:
-        return [d.strip() for d in self.lab_authorized_domains.split(",") if d.strip()]
+    # --- External Recon Tools Settings ---------------------------------------
+    allow_tool_download: bool = Field(default=False)
+    subfinder_shodan_api: str = Field(default="")
+    subfinder_virustotal_api: str = Field(default="")
+    subfinder_censys_api: str = Field(default="")
 
     # --- Reconnaissance behaviour -------------------------------------------
     request_timeout: float = Field(default=10.0)
@@ -65,21 +64,7 @@ class Settings(BaseSettings):
     # --- Reports -------------------------------------------------------------
     report_dir: str = Field(default="./reports")
 
-    # --- Local lab only ------------------------------------------------------
-    # When allow_private_networks is True (local Docker lab), also probe these
-    # extra HTTP ports for each host. Empty in production. Comma-separated.
-    lab_extra_ports: List[int] = Field(default_factory=list)
 
-    @field_validator("lab_extra_ports", mode="before")
-    @classmethod
-    def _parse_ports(cls, v):
-        if v is None or v == "":
-            return []
-        if isinstance(v, str):
-            return [int(p.strip()) for p in v.split(",") if p.strip()]
-        if isinstance(v, int):
-            return [v]
-        return list(v)
 
     # --- CORS ----------------------------------------------------------------
     # Stored as a comma-separated string in env; split into a list via property.

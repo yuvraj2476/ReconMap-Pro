@@ -50,12 +50,11 @@ def scan(
     active_subdomains: bool = typer.Option(False, "--active-subdomains", help="Enable constrained subdomain wordlist"),
     max_depth: int = typer.Option(2, "--max-depth"),
     max_pages: int = typer.Option(50, "--max-pages"),
-    allow_private: bool = typer.Option(False, "--allow-private", help="Permit private networks (LOCAL LAB ONLY)"),
+    allow_private: bool = typer.Option(False, "--allow-private", help="Permit private networks"),
 ) -> None:
     """Run an authorized scan against a target domain."""
     settings = get_settings()
-    is_lab = target.endswith(".local") or target.endswith(".lab") or target in settings.lab_authorized_domains_list
-    if allow_private or is_lab or settings.allow_private_networks:
+    if allow_private or settings.allow_private_networks:
         settings.allow_private_networks = True
         allow_private = True
 

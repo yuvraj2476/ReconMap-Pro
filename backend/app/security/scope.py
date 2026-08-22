@@ -270,7 +270,7 @@ class ScopeValidator:
             except Exception as exc:
                 logger.debug("getaddrinfo fallback failed for %s: %s", host, exc)
 
-        if not ips and (self.allow_private_networks or host == "localhost" or host.endswith(".local") or host.endswith(".lab")):
+        if not ips and (self.allow_private_networks or host == "localhost" or host.endswith(".local")):
             ips.append("127.0.0.1")
 
         self._cache[host] = ips
@@ -303,8 +303,7 @@ class ScopeValidator:
                 )
             if reason and not self.allow_private_networks:
                 raise PrivateNetworkError(
-                    f"Refusing to contact {host!r}: resolved to {reason} address {ip}. "
-                    "Set allow_private_networks=True only for the local Docker lab."
+                    f"Refusing to contact {host!r}: resolved to {reason} address {ip}."
                 )
         return host, ips
 

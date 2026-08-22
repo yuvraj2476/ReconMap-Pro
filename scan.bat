@@ -23,8 +23,7 @@ if not exist ".venv\Scripts\activate.bat" (
     call .venv\Scripts\activate.bat
 )
 
-set RECONMAP_ALLOW_PRIVATE_NETWORKS=true
-set RECONMAP_LAB_EXTRA_PORTS=8099
+set RECONMAP_ALLOW_PRIVATE_NETWORKS=false
 set RECONMAP_DATABASE_URL=sqlite+aiosqlite:///./reconmap.db
 set RECONMAP_REPORT_DIR=./reports
 
@@ -32,9 +31,9 @@ if "%~1"=="" (
     echo Usage: scan.bat ^<target-domain^> [extra cli args...]
     echo.
     echo Examples:
-    echo   scan.bat lab.local
-    echo   scan.bat lab.local --active-subdomains
+    echo   scan.bat example.com
     echo   scan.bat example.com --passive
+    echo   scan.bat example.com --active-subdomains
     echo.
     python -m app.cli --help
     exit /b 0

@@ -85,7 +85,7 @@ class SafeHttpClient:
             req_headers = {}
 
             parsed_current = urlparse(current)
-            if ips and (self.validator.allow_private_networks or host.endswith(".local") or host.endswith(".lab") or host == "localhost"):
+            if ips and (self.validator.allow_private_networks or host.endswith(".local") or host == "localhost"):
                 target_ip = ips[0]
                 port_str = f":{parsed_current.port}" if parsed_current.port else ""
                 req_headers["Host"] = parsed_current.netloc or host

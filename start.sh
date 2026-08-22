@@ -71,21 +71,11 @@ else
 fi
 
 # --- Environment ------------------------------------------------------------
-export RECONMAP_ALLOW_PRIVATE_NETWORKS=true
-export RECONMAP_LAB_EXTRA_PORTS=8099
+export RECONMAP_ALLOW_PRIVATE_NETWORKS=false
 export RECONMAP_DATABASE_URL="sqlite+aiosqlite:///./reconmap.db"
 export RECONMAP_REPORT_DIR="./reports"
 export RECONMAP_CORS_ORIGINS="http://localhost:8000,http://localhost:5173"
 export PYTHONUNBUFFERED=1
-
-# --- Start the demo lab in the background -----------------------------------
-echo
-echo "  Starting local demo lab on http://localhost:8099 ..."
-python3 lab/server.py &
-LAB_PID=$!
-trap 'echo; echo "  Shutting down..."; kill $LAB_PID 2>/dev/null || true' EXIT
-
-sleep 2
 
 # --- Open the browser (best effort) -----------------------------------------
 ( sleep 3; (command -v xdg-open >/dev/null && xdg-open http://localhost:8000) \
@@ -98,9 +88,6 @@ echo "   ReconMap Pro is starting ..."
 echo
 echo "     Web UI:        http://localhost:8000"
 echo "     API docs:      http://localhost:8000/docs"
-echo "     Demo lab:      http://localhost:8099"
-echo
-echo "   In the UI, click \"New scan\" and target:  lab.local"
 echo
 echo "   Press Ctrl+C to stop."
 echo "  ${cyan}============================================================${nc}"

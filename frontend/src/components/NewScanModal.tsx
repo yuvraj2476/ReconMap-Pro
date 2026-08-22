@@ -131,6 +131,10 @@ export default function NewScanModal({
           </label>
         </div>
 
+        <div className="mt-3 text-[11px] text-slate-400 bg-ink-850 p-2.5 rounded border border-ink-750">
+          💡 <strong>Advanced Subdomain Recon:</strong> The scanner will automatically attempt to download and run <strong>subfinder</strong> if <code>RECONMAP_ALLOW_TOOL_DOWNLOAD=true</code> is set in the environment.
+        </div>
+
         <div className="grid grid-cols-2 gap-4 mt-4">
           <div>
             <label className="block text-xs text-slate-400 mb-1">Crawl depth</label>

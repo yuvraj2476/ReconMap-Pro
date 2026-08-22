@@ -18,6 +18,7 @@ async def health() -> dict:
         "database": settings.database_url.split("://", 1)[0],
         "redis": "configured" if settings.redis_url else "in-process",
         "allow_private_networks": settings.allow_private_networks,
+        "allow_tool_download": settings.allow_tool_download,
     }
 
 
